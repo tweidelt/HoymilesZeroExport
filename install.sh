@@ -14,6 +14,7 @@ if [ -z $PIP3 ]; then
 fi
 pip3 install requests
 pip3 install packaging
+pip3 install pyModbusTCP
 echo 'Packages install completed'
 
 if systemctl --type=service --state=running | grep -Fq 'HoymilesZeroExport.service'; then
@@ -33,7 +34,7 @@ After=multi-user.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/bin/python3 ${SCRIPT_DIR}/HoymilesZeroExport.py
+ExecStart=${SCRIPT_DIR}/HoymilesZeroExport.py
 [Install]
 WantedBy=multi-user.target
 EOF
