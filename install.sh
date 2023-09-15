@@ -38,7 +38,7 @@ After=multi-user.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/bin/python3 ${SCRIPT_DIR}/HoymilesZeroExport.py -c ${SCRIPT_DIR}/HoymilesZeroExport_Config_Override.ini
+ExecStart=${SCRIPT_DIR}/HoymilesZeroExport.py -c ${SCRIPT_DIR}/HoymilesZeroExport_Config_Override.ini
 [Install]
 WantedBy=multi-user.target
 EOF
