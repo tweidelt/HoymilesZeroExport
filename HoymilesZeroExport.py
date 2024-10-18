@@ -41,10 +41,9 @@ import struct
 
 session = Session()
 logging.basicConfig(
-    format="%(asctime)s %(levelname)-8s %(message)s",
+    format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+    datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger()
 
 parser = argparse.ArgumentParser()
@@ -63,32 +62,30 @@ try:
     ENABLE_LOG_TO_FILE = config.getboolean('COMMON', 'ENABLE_LOG_TO_FILE')
     LOG_BACKUP_COUNT = config.getint('COMMON', 'LOG_BACKUP_COUNT')
 except Exception as e:
-    logger.info("Error on reading ENABLE_LOG_TO_FILE, set it to DISABLED")
+    logger.info('Error on reading ENABLE_LOG_TO_FILE, set it to DISABLED')
     ENABLE_LOG_TO_FILE = False
-    if hasattr(e, "message"):
+    if hasattr(e, 'message'):
         logger.error(e.message)
     else:
         logger.error(e)
 
 if ENABLE_LOG_TO_FILE:
-    if not os.path.exists(Path.joinpath(Path(__file__).parent.resolve(), "log")):
-        os.makedirs(Path.joinpath(Path(__file__).parent.resolve(), "log"))
+    if not os.path.exists(Path.joinpath(Path(__file__).parent.resolve(), 'log')):
+        os.makedirs(Path.joinpath(Path(__file__).parent.resolve(), 'log'))
 
     rotating_file_handler = TimedRotatingFileHandler(
-        filename=Path.joinpath(
-            Path.joinpath(Path(__file__).parent.resolve(), "log"), "log"
-        ),
-        when="midnight",
+        filename=Path.joinpath(Path.joinpath(Path(__file__).parent.resolve(), 'log'),'log'),
+        when='midnight',
         interval=2,
-        backupCount=LOG_BACKUP_COUNT,
-    )
+        backupCount=LOG_BACKUP_COUNT)
 
-    formatter = logging.Formatter("%(asctime)s %(levelname)-8s %(message)s")
+    formatter = logging.Formatter(
+        '%(asctime)s %(levelname)-8s %(message)s')
     rotating_file_handler.setFormatter(formatter)
     logger.addHandler(rotating_file_handler)
 
-logger.info("Log write to file: %s", ENABLE_LOG_TO_FILE)
-logger.info("Python Version: " + sys.version)
+logger.info('Log write to file: %s', ENABLE_LOG_TO_FILE)
+logger.info('Python Version: ' + sys.version)
 try:
     assert sys.version_info >= (3,8)
 except:
@@ -155,12 +152,7 @@ def SetLimit(pLimit):
             # Apply the calculated limit to the inverter
             NewLimit = ApplyLimitsToSetpointInverter(i, NewLimit)
             if HOY_COMPENSATE_WATT_FACTOR[i] != 1:
-                logger.info(
-                    'Ahoy: Inverter "%s": compensate Limit from %s Watt to %s Watt',
-                    NAME[i],
-                    CastToInt(NewLimit),
-                    CastToInt(NewLimit * HOY_COMPENSATE_WATT_FACTOR[i]),
-                )
+                logger.info('Ahoy: Inverter "%s": compensate Limit from %s Watt to %s Watt', NAME[i], CastToInt(NewLimit), CastToInt(NewLimit*HOY_COMPENSATE_WATT_FACTOR[i]))
                 NewLimit = CastToInt(NewLimit * HOY_COMPENSATE_WATT_FACTOR[i])
                 NewLimit = ApplyLimitsToMaxInverterLimits(i, NewLimit)
 
@@ -269,18 +261,14 @@ def GetHoymilesAvailable():
                         GetHoymilesInfo()
             except Exception as e:
                 AVAILABLE[i] = False
-                logger.error(
-                    "Exception at GetHoymilesAvailable, Inverter %s (%s) not reachable",
-                    i,
-                    NAME[i],
-                )
-                if hasattr(e, "message"):
+                logger.error("Exception at GetHoymilesAvailable, Inverter %s (%s) not reachable", i, NAME[i])
+                if hasattr(e, 'message'):
                     logger.error(e.message)
                 else:
                     logger.error(e)
         return GetHoymilesAvailable
     except:
-        logger.error("Exception at GetHoymilesAvailable")
+        logger.error('Exception at GetHoymilesAvailable')
         raise
 
 def GetHoymilesInfo():
@@ -336,13 +324,9 @@ def SetHoymilesPowerStatus(pInverterId, pActive):
                 SetHoymilesPowerStatus.SamePowerStatusCnt[pInverterId] = 0
             if SetHoymilesPowerStatus.SamePowerStatusCnt[pInverterId] > SET_POWERSTATUS_CNT:
                 if pActive:
-                    logger.info(
-                        "Retry Counter exceeded: Inverter PowerStatus already ON"
-                    )
+                    logger.info("Retry Counter exceeded: Inverter PowerStatus already ON")
                 else:
-                    logger.info(
-                        "Retry Counter exceeded: Inverter PowerStatus already OFF"
-                    )
+                    logger.info("Retry Counter exceeded: Inverter PowerStatus already OFF")
                 return
         DTU.SetPowerStatus(pInverterId, pActive)
         time.sleep(SET_POWER_STATUS_DELAY_IN_SECONDS)
@@ -352,10 +336,10 @@ def SetHoymilesPowerStatus(pInverterId, pActive):
 
 
 def GetNumberArray(pExcludedPanels):
-    lclExcludedPanelsList = pExcludedPanels.split(",")
+    lclExcludedPanelsList = pExcludedPanels.split(',')
     result = []
     for number_str in lclExcludedPanelsList:
-        if number_str == "":
+        if number_str == '':
             continue
         number = int(number_str.strip())
         result.append(number)
@@ -415,9 +399,7 @@ def GetHoymilesTemperature():
             try:
                 DTU.GetTemperature(i)
             except:
-                logger.error(
-                    "Exception at GetHoymilesTemperature, Inverter %s not reachable", i
-                )
+                logger.error("Exception at GetHoymilesTemperature, Inverter %s not reachable", i)
     except:
         logger.error("Exception at GetHoymilesTemperature")
         raise
@@ -462,26 +444,10 @@ def CutLimitToProduction(pSetpoint):
     if pSetpoint != GetMaxWattFromAllInverters():
         ActualPower = GetHoymilesActualPower()
         # prevent the setpoint from running away...
-        if pSetpoint > ActualPower + (
-            GetMaxWattFromAllInverters()
-            * MAX_DIFFERENCE_BETWEEN_LIMIT_AND_OUTPUTPOWER
-            / 100
-        ):
-            pSetpoint = CastToInt(
-                ActualPower
-                + (
-                    GetMaxWattFromAllInverters()
-                    * MAX_DIFFERENCE_BETWEEN_LIMIT_AND_OUTPUTPOWER
-                    / 100
-                )
-            )
-            logger.info(
-                "Cut limit to %s Watt, limit was higher than %s percent of live-production",
-                CastToInt(pSetpoint),
-                MAX_DIFFERENCE_BETWEEN_LIMIT_AND_OUTPUTPOWER,
-            )
+        if pSetpoint > ActualPower + (GetMaxWattFromAllInverters() * MAX_DIFFERENCE_BETWEEN_LIMIT_AND_OUTPUTPOWER / 100):
+            pSetpoint = CastToInt(ActualPower + (GetMaxWattFromAllInverters() * MAX_DIFFERENCE_BETWEEN_LIMIT_AND_OUTPUTPOWER / 100))
+            logger.info('Cut limit to %s Watt, limit was higher than %s percent of live-production', CastToInt(pSetpoint), MAX_DIFFERENCE_BETWEEN_LIMIT_AND_OUTPUTPOWER)
     return CastToInt(pSetpoint)
-
 
 def ApplyLimitsToSetpoint(pSetpoint):
     if pSetpoint > GetMaxWattFromAllInverters():
@@ -490,14 +456,12 @@ def ApplyLimitsToSetpoint(pSetpoint):
         pSetpoint = GetMinWattFromAllInverters()
     return pSetpoint
 
-
 def ApplyLimitsToSetpointInverter(pInverter, pSetpoint):
     if pSetpoint > HOY_MAX_WATT[pInverter]:
         pSetpoint = HOY_MAX_WATT[pInverter]
     if pSetpoint < GetMinWatt(pInverter):
         pSetpoint = GetMinWatt(pInverter)
     return pSetpoint
-
 
 def ApplyLimitsToMaxInverterLimits(pInverter, pSetpoint):
     if pSetpoint > HOY_INVERTER_WATT[pInverter]:
@@ -1663,7 +1627,7 @@ try:
         GetCheckBattery()
     GetPowermeterWatts()
 except Exception as e:
-    if hasattr(e, "message"):
+    if hasattr(e, 'message'):
         logger.error(e.message)
     else:
         logger.error(e)
@@ -1690,9 +1654,7 @@ while True:
         if GetHoymilesAvailable() and GetCheckBattery():
             if LOG_TEMPERATURE:
                 GetHoymilesTemperature()
-            for x in range(
-                CastToInt(LOOP_INTERVAL_IN_SECONDS / POLL_INTERVAL_IN_SECONDS)
-            ):
+            for x in range(CastToInt(LOOP_INTERVAL_IN_SECONDS / POLL_INTERVAL_IN_SECONDS)):
                 powermeterWatts = GetPowermeterWatts()
                 if powermeterWatts > powermeter_max_point:
                     if on_grid_usage_jump_to_limit_percent > 0:
@@ -1734,9 +1696,7 @@ while True:
                     newLimitSetpoint = hoymilesActualPower + powermeterWatts - powermeter_target_point
                     LimitDifference = abs(hoymilesActualPower - newLimitSetpoint)
                     if LimitDifference > SLOW_APPROX_LIMIT:
-                        newLimitSetpoint = newLimitSetpoint + (
-                            LimitDifference * SLOW_APPROX_FACTOR_IN_PERCENT / 100
-                        )
+                        newLimitSetpoint = newLimitSetpoint + (LimitDifference * SLOW_APPROX_FACTOR_IN_PERCENT / 100)
                     if newLimitSetpoint > hoymilesActualPower:
                         newLimitSetpoint = hoymilesActualPower
                     logger.info("overproducing: reduce limit based on actual power")
@@ -1745,16 +1705,10 @@ while True:
                     # check if it is necessary to approximate to the setpoint with some more passes. this reduce overshoot
                     LimitDifference = abs(PreviousLimitSetpoint - newLimitSetpoint)
                     if LimitDifference > SLOW_APPROX_LIMIT:
-                        logger.info(
-                            "overproducing: reduce limit based on previous limit setpoint by approximation"
-                        )
-                        newLimitSetpoint = newLimitSetpoint + (
-                            LimitDifference * SLOW_APPROX_FACTOR_IN_PERCENT / 100
-                        )
+                        logger.info("overproducing: reduce limit based on previous limit setpoint by approximation")
+                        newLimitSetpoint = newLimitSetpoint + (LimitDifference * SLOW_APPROX_FACTOR_IN_PERCENT / 100)
                     else:
-                        logger.info(
-                            "overproducing: reduce limit based on previous limit setpoint"
-                        )
+                        logger.info("overproducing: reduce limit based on previous limit setpoint")
 
             # producing too little power: increase limit
             elif powermeterWatts > (powermeter_target_point + powermeter_tolerance):
@@ -1774,7 +1728,7 @@ while True:
             time.sleep(LOOP_INTERVAL_IN_SECONDS)
 
     except Exception as e:
-        if hasattr(e, "message"):
+        if hasattr(e, 'message'):
             logger.error(e.message)
         else:
             logger.error(e)
